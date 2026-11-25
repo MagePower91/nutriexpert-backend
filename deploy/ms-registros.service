@@ -1,0 +1,16 @@
+[Unit]
+Description=NutriExpert ms-registros
+After=network.target
+Wants=ms-catalogo.service
+
+[Service]
+User=ec2-user
+WorkingDirectory=/opt/nutriexpert/ms-registros
+# t3.micro tiene 1 GB: se limita la memoria de cada servicio para que quepan los tres.
+ExecStart=/usr/bin/java -Xms64m -Xmx200m -XX:+UseSerialGC -jar /opt/nutriexpert/ms-registros/ms-registros.jar
+SuccessExitStatus=143
+Restart=on-failure
+RestartSec=10
+
+[Install]
+WantedBy=multi-user.target

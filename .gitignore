@@ -1,0 +1,19 @@
+# Maven
+target/
+!.mvn/wrapper/maven-wrapper.properties
+
+# Bases H2 locales (se crean al levantar cada servicio)
+data/
+*.mv.db
+*.trace.db
+
+# IDE
+.idea/
+*.iml
+.vscode/
+.DS_Store
+
+# Llaves y secretos: NUNCA al repo
+*.pem
+*.key
+.env

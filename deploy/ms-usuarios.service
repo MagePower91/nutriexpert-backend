@@ -1,0 +1,16 @@
+[Unit]
+Description=NutriExpert ms-usuarios
+After=network.target
+
+
+[Service]
+User=ec2-user
+WorkingDirectory=/opt/nutriexpert/ms-usuarios
+# t3.micro tiene 1 GB: se limita la memoria de cada servicio para que quepan los tres.
+ExecStart=/usr/bin/java -Xms64m -Xmx200m -XX:+UseSerialGC -jar /opt/nutriexpert/ms-usuarios/ms-usuarios.jar
+SuccessExitStatus=143
+Restart=on-failure
+RestartSec=10
+
+[Install]
+WantedBy=multi-user.target

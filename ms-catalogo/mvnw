@@ -1,0 +1,20 @@
+#!/bin/sh
+# Maven Wrapper mínimo: la primera vez descarga Maven en ~/.m2/wrapper y luego lo usa.
+# Uso: ./mvnw clean package   |   ./mvnw test   |   ./mvnw spring-boot:run
+set -e
+BASE_DIR=$(cd "$(dirname "$0")" && pwd)
+PROPS="$BASE_DIR/.mvn/wrapper/maven-wrapper.properties"
+URL=$(grep '^distributionUrl=' "$PROPS" | cut -d'=' -f2-)
+NOMBRE=$(basename "$URL" -bin.zip)
+DESTINO="${MAVEN_USER_HOME:-$HOME/.m2}/wrapper/dists/$NOMBRE"
+if [ ! -x "$DESTINO/bin/mvn" ]; then
+  echo "Descargando $NOMBRE ..."
+  mkdir -p "$DESTINO.tmp"
+  TMPZIP="$DESTINO.tmp/maven.zip"
+  if command -v curl >/dev/null 2>&1; then curl -fsSL -o "$TMPZIP" "$URL"; else wget -q -O "$TMPZIP" "$URL"; fi
+  unzip -q "$TMPZIP" -d "$DESTINO.tmp"
+  rm -rf "$DESTINO"
+  mv "$DESTINO.tmp/$NOMBRE" "$DESTINO"
+  rm -rf "$DESTINO.tmp"
+fi
+exec "$DESTINO/bin/mvn" -f "$BASE_DIR/pom.xml" "$@"

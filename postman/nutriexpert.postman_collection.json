@@ -1,0 +1,725 @@
+{
+  "info": {
+    "name": "NutriExpert",
+    "description": "Endpoints de ms-usuarios (8083), ms-catalogo (8081) y ms-registros (8082). Cambia la variable host por la Elastic IP para probar en EC2. Datos ficticios.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    {
+      "key": "host",
+      "value": "localhost"
+    },
+    {
+      "key": "usuarios",
+      "value": "http://{{host}}:8083"
+    },
+    {
+      "key": "catalogo",
+      "value": "http://{{host}}:8081"
+    },
+    {
+      "key": "registros",
+      "value": "http://{{host}}:8082"
+    },
+    {
+      "key": "usuarioId",
+      "value": "1"
+    },
+    {
+      "key": "registroId",
+      "value": "1"
+    }
+  ],
+  "item": [
+    {
+      "name": "ms-usuarios",
+      "item": [
+        {
+          "name": "Registro (201)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{usuarios}}/api/usuarios/registro",
+              "host": [
+                "{{usuarios}}"
+              ],
+              "path": [
+                "api",
+                "usuarios",
+                "registro"
+              ]
+            },
+            "description": "",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"nombre\": \"Ana Prueba\",\n  \"correo\": \"ana.prueba@nutriexpert.cl\",\n  \"rol\": \"ASESOR\",\n  \"clave\": \"ClavePrueba123\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Responde 201 o 409 si ya existe\", () => pm.expect(pm.response.code).to.be.oneOf([201, 409]));",
+                  "if (pm.response.code === 201) { pm.test(\"No devuelve la clave\", () => { const j = pm.response.json(); pm.expect(j).to.not.have.property(\"clave\"); pm.expect(j).to.not.have.property(\"claveHash\"); }); }"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Registro correo repetido (409)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{usuarios}}/api/usuarios/registro",
+              "host": [
+                "{{usuarios}}"
+              ],
+              "path": [
+                "api",
+                "usuarios",
+                "registro"
+              ]
+            },
+            "description": "",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"nombre\": \"Usuario Demo\",\n  \"correo\": \"demo@nutriexpert.cl\",\n  \"rol\": \"AGRICULTOR\",\n  \"clave\": \"ClaveDemo123\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Responde 409\", () => pm.response.to.have.status(409));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Registro invalido (400)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{usuarios}}/api/usuarios/registro",
+              "host": [
+                "{{usuarios}}"
+              ],
+              "path": [
+                "api",
+                "usuarios",
+                "registro"
+              ]
+            },
+            "description": "",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"nombre\": \"X\",\n  \"correo\": \"no-es-correo\",\n  \"rol\": \"ADMIN\",\n  \"clave\": \"123\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Responde 400\", () => pm.response.to.have.status(400));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Login correcto (200)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{usuarios}}/api/usuarios/login",
+              "host": [
+                "{{usuarios}}"
+              ],
+              "path": [
+                "api",
+                "usuarios",
+                "login"
+              ]
+            },
+            "description": "",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"correo\": \"demo@nutriexpert.cl\",\n  \"clave\": \"ClaveDemo123\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Responde 200\", () => pm.response.to.have.status(200));",
+                  "const j = pm.response.json();",
+                  "pm.collectionVariables.set(\"usuarioId\", j.id);",
+                  "pm.test(\"Sin clave en la respuesta\", () => pm.expect(j).to.not.have.property(\"claveHash\"));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Login incorrecto (401)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{usuarios}}/api/usuarios/login",
+              "host": [
+                "{{usuarios}}"
+              ],
+              "path": [
+                "api",
+                "usuarios",
+                "login"
+              ]
+            },
+            "description": "",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"correo\": \"demo@nutriexpert.cl\",\n  \"clave\": \"ClaveMala999\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Responde 401\", () => pm.response.to.have.status(401));",
+                  "pm.test(\"Mensaje generico\", () => pm.expect(pm.response.json().error).to.eql(\"Correo o clave incorrectos\"));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Usuario por id (200)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{usuarios}}/api/usuarios/{{usuarioId}}",
+              "host": [
+                "{{usuarios}}"
+              ],
+              "path": [
+                "api",
+                "usuarios",
+                "{{usuarioId}}"
+              ]
+            },
+            "description": ""
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Responde 200\", () => pm.response.to.have.status(200));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Usuario inexistente (404)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{usuarios}}/api/usuarios/99999",
+              "host": [
+                "{{usuarios}}"
+              ],
+              "path": [
+                "api",
+                "usuarios",
+                "99999"
+              ]
+            },
+            "description": ""
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Responde 404\", () => pm.response.to.have.status(404));"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "ms-catalogo",
+      "item": [
+        {
+          "name": "Listar cultivos (200)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{catalogo}}/api/cultivos",
+              "host": [
+                "{{catalogo}}"
+              ],
+              "path": [
+                "api",
+                "cultivos"
+              ]
+            },
+            "description": ""
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Responde 200\", () => pm.response.to.have.status(200));",
+                  "pm.test(\"Trae al menos los 3 cultivos de ejemplo\", () => pm.expect(pm.response.json().length).to.be.at.least(3));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Cultivo por id (200)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{catalogo}}/api/cultivos/1",
+              "host": [
+                "{{catalogo}}"
+              ],
+              "path": [
+                "api",
+                "cultivos",
+                "1"
+              ]
+            },
+            "description": ""
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Responde 200\", () => pm.response.to.have.status(200));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Cultivo inexistente (404)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{catalogo}}/api/cultivos/99999",
+              "host": [
+                "{{catalogo}}"
+              ],
+              "path": [
+                "api",
+                "cultivos",
+                "99999"
+              ]
+            },
+            "description": ""
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Responde 404\", () => pm.response.to.have.status(404));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Crear cultivo (201)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{catalogo}}/api/cultivos",
+              "host": [
+                "{{catalogo}}"
+              ],
+              "path": [
+                "api",
+                "cultivos"
+              ]
+            },
+            "description": "",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"nombre\": \"Uva de mesa\",\n  \"rendimientoBase\": 25.0,\n  \"n\": 90.0,\n  \"p2o5\": 30.0,\n  \"k2o\": 120.0,\n  \"cao\": 60.0,\n  \"mgo\": 20.0\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Responde 201 o 409 si ya existe\", () => pm.expect(pm.response.code).to.be.oneOf([201, 409]));"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "ms-registros",
+      "item": [
+        {
+          "name": "Guardar registro (201 / 200 si se repite)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{registros}}/api/registros",
+              "host": [
+                "{{registros}}"
+              ],
+              "path": [
+                "api",
+                "registros"
+              ]
+            },
+            "description": "",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"idLocal\": 7,\n  \"usuarioId\": {{usuarioId}},\n  \"cultivo\": \"Palto\",\n  \"lote\": \"L-01\",\n  \"metaRendimiento\": 12.0,\n  \"eficienciaRiego\": 85.0,\n  \"n\": 84.7,\n  \"p2o5\": 28.2,\n  \"k2o\": 112.9,\n  \"cao\": 42.4,\n  \"mgo\": 21.2,\n  \"creadoEn\": 1795600000000\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Responde 201 o 200\", () => pm.expect(pm.response.code).to.be.oneOf([200, 201]));",
+                  "pm.collectionVariables.set(\"registroId\", pm.response.json().id);"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Reenviar el mismo registro (200, sin duplicar)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{registros}}/api/registros",
+              "host": [
+                "{{registros}}"
+              ],
+              "path": [
+                "api",
+                "registros"
+              ]
+            },
+            "description": "",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"idLocal\": 7,\n  \"usuarioId\": {{usuarioId}},\n  \"cultivo\": \"Palto\",\n  \"lote\": \"L-01\",\n  \"metaRendimiento\": 12.0,\n  \"eficienciaRiego\": 85.0,\n  \"n\": 84.7,\n  \"p2o5\": 28.2,\n  \"k2o\": 112.9,\n  \"cao\": 42.4,\n  \"mgo\": 21.2,\n  \"creadoEn\": 1795600000000\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Responde 200\", () => pm.response.to.have.status(200));",
+                  "pm.test(\"Mismo id\", () => pm.expect(pm.response.json().id).to.eql(Number(pm.collectionVariables.get(\"registroId\"))));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Registro invalido (400)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{registros}}/api/registros",
+              "host": [
+                "{{registros}}"
+              ],
+              "path": [
+                "api",
+                "registros"
+              ]
+            },
+            "description": "",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"idLocal\": 8,\n  \"usuarioId\": 1,\n  \"cultivo\": \"Palto\",\n  \"lote\": \"L-01\",\n  \"metaRendimiento\": 12.0,\n  \"eficienciaRiego\": 150.0,\n  \"n\": 84.7,\n  \"p2o5\": 28.2,\n  \"k2o\": 112.9,\n  \"cao\": 42.4,\n  \"mgo\": 21.2,\n  \"creadoEn\": 1795600000000\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Responde 400\", () => pm.response.to.have.status(400));",
+                  "pm.test(\"Mensaje de error\", () => pm.expect(pm.response.json().error).to.eql(\"eficienciaRiego debe estar entre 1 y 100\"));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Registros del usuario (200)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{registros}}/api/registros?usuarioId={{usuarioId}}",
+              "host": [
+                "{{registros}}"
+              ],
+              "path": [
+                "api",
+                "registros"
+              ],
+              "query": [
+                {
+                  "key": "usuarioId",
+                  "value": "{{usuarioId}}"
+                }
+              ]
+            },
+            "description": ""
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Responde 200\", () => pm.response.to.have.status(200));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Registro por id (200)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{registros}}/api/registros/{{registroId}}",
+              "host": [
+                "{{registros}}"
+              ],
+              "path": [
+                "api",
+                "registros",
+                "{{registroId}}"
+              ]
+            },
+            "description": ""
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Responde 200\", () => pm.response.to.have.status(200));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Borrar registro (204)",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{registros}}/api/registros/{{registroId}}",
+              "host": [
+                "{{registros}}"
+              ],
+              "path": [
+                "api",
+                "registros",
+                "{{registroId}}"
+              ]
+            },
+            "description": ""
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Responde 204\", () => pm.response.to.have.status(204));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Borrar inexistente (404)",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{registros}}/api/registros/99999",
+              "host": [
+                "{{registros}}"
+              ],
+              "path": [
+                "api",
+                "registros",
+                "99999"
+              ]
+            },
+            "description": ""
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Responde 404\", () => pm.response.to.have.status(404));"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}
