@@ -111,6 +111,52 @@ class RegistroServiceTest {
     }
 
     @Test
+    void actualizarCambiaLosDatosYConservaLaIdentidad() {
+        Registro actual = registro();
+        actual.setId(15L);
+        when(repository.findById(15L)).thenReturn(Optional.of(actual));
+        when(catalogoClient.existeCultivo("Palto")).thenReturn(Optional.of(true));
+        when(repository.save(any(Registro.class))).thenAnswer(inv -> inv.getArgument(0));
+
+        Registro cambios = registro();
+        cambios.setIdLocal(999L);      // la app no puede cambiar la identidad
+        cambios.setUsuarioId(2L);
+        cambios.setLote(" L-02 ");
+        cambios.setMetaRendimiento(14.0);
+        cambios.setN(98.8);
+
+        Registro resultado = service.actualizar(15L, cambios);
+
+        assertEquals(15L, resultado.getId());
+        assertEquals(7L, resultado.getIdLocal());
+        assertEquals(1L, resultado.getUsuarioId());
+        assertEquals("L-02", resultado.getLote());
+        assertEquals(14.0, resultado.getMetaRendimiento());
+        assertEquals(98.8, resultado.getN());
+    }
+
+    @Test
+    void actualizarInexistenteLanza404() {
+        when(repository.findById(99L)).thenReturn(Optional.empty());
+
+        assertThrows(RecursoNoEncontradoException.class, () -> service.actualizar(99L, registro()));
+        verify(repository, never()).save(any());
+    }
+
+    @Test
+    void actualizarConCultivoQueNoEstaEnElCatalogoLanzaError() {
+        Registro actual = registro();
+        actual.setId(15L);
+        Registro cambios = registro();
+        cambios.setCultivo("Frutilla");
+        when(repository.findById(15L)).thenReturn(Optional.of(actual));
+        when(catalogoClient.existeCultivo("Frutilla")).thenReturn(Optional.of(false));
+
+        assertThrows(DatoInvalidoException.class, () -> service.actualizar(15L, cambios));
+        verify(repository, never()).save(any());
+    }
+
+    @Test
     void borrarInexistenteLanza404() {
         when(repository.existsById(99L)).thenReturn(false);
 

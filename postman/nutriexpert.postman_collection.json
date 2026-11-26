@@ -660,6 +660,95 @@
           ]
         },
         {
+          "name": "Actualizar registro (200)",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{registros}}/api/registros/{{registroId}}",
+              "host": [
+                "{{registros}}"
+              ],
+              "path": [
+                "api",
+                "registros",
+                "{{registroId}}"
+              ]
+            },
+            "description": "",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"idLocal\": 7,\n  \"usuarioId\": {{usuarioId}},\n  \"cultivo\": \"Palto\",\n  \"lote\": \"L-01\",\n  \"metaRendimiento\": 14.0,\n  \"eficienciaRiego\": 85.0,\n  \"n\": 98.8,\n  \"p2o5\": 32.9,\n  \"k2o\": 131.8,\n  \"cao\": 49.4,\n  \"mgo\": 24.7,\n  \"creadoEn\": 1795600000000\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Responde 200\", () => pm.response.to.have.status(200));",
+                  "pm.test(\"Guarda la nueva meta\", () => pm.expect(pm.response.json().metaRendimiento).to.eql(14.0));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Actualizar inexistente (404)",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{registros}}/api/registros/99999",
+              "host": [
+                "{{registros}}"
+              ],
+              "path": [
+                "api",
+                "registros",
+                "99999"
+              ]
+            },
+            "description": "",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"idLocal\": 7,\n  \"usuarioId\": {{usuarioId}},\n  \"cultivo\": \"Palto\",\n  \"lote\": \"L-01\",\n  \"metaRendimiento\": 14.0,\n  \"eficienciaRiego\": 85.0,\n  \"n\": 98.8,\n  \"p2o5\": 32.9,\n  \"k2o\": 131.8,\n  \"cao\": 49.4,\n  \"mgo\": 24.7,\n  \"creadoEn\": 1795600000000\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Responde 404\", () => pm.response.to.have.status(404));"
+                ]
+              }
+            }
+          ]
+        },
+        {
           "name": "Borrar registro (204)",
           "request": {
             "method": "DELETE",

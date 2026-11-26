@@ -60,6 +60,28 @@ public class RegistroService {
                 .orElseThrow(() -> new RecursoNoEncontradoException("No existe el registro con id " + id));
     }
 
+    // Actualiza los datos editables. id, idLocal, usuarioId y creadoEn no cambian:
+    // identifican al registro y a su dueño.
+    public Registro actualizar(Long id, Registro datos) {
+        Registro actual = buscarPorId(id);
+
+        String cultivo = datos.getCultivo().trim();
+        if (catalogoClient.existeCultivo(cultivo).map(existe -> !existe).orElse(false)) {
+            throw new DatoInvalidoException("El cultivo " + cultivo + " no existe en el catalogo");
+        }
+
+        actual.setCultivo(cultivo);
+        actual.setLote(datos.getLote().trim());
+        actual.setMetaRendimiento(datos.getMetaRendimiento());
+        actual.setEficienciaRiego(datos.getEficienciaRiego());
+        actual.setN(datos.getN());
+        actual.setP2o5(datos.getP2o5());
+        actual.setK2o(datos.getK2o());
+        actual.setCao(datos.getCao());
+        actual.setMgo(datos.getMgo());
+        return repository.save(actual);
+    }
+
     public void borrar(Long id) {
         if (!repository.existsById(id)) {
             throw new RecursoNoEncontradoException("No existe el registro con id " + id);
