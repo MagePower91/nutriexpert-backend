@@ -19,7 +19,7 @@ flowchart LR
     subgraph EC2["AWS Academy · EC2 t3.micro · Elastic IP"]
         U["ms-usuarios :8083<br/>registro y login · BCrypt · H2"]
         C["ms-catalogo :8081<br/>GET /api/cultivos · H2"]
-        R["ms-registros :8082<br/>POST/GET /api/registros · H2"]
+        R["ms-registros :8082<br/>CRUD /api/registros · H2"]
     end
     App -- HTTP --> U
     App -- HTTP --> C
@@ -121,6 +121,7 @@ GET /api/cultivos → 200
 | POST | `/api/registros` | 201 + registro con `id` · 200 si ya existía · 400 |
 | GET | `/api/registros?usuarioId={id}` | 200 + lista |
 | GET | `/api/registros/{id}` | 200 · 404 |
+| PUT | `/api/registros/{id}` | 200 + registro actualizado · 400 · 404 |
 | DELETE | `/api/registros/{id}` | 204 · 404 |
 
 ```json
@@ -138,6 +139,7 @@ Reglas:
 - Validación con `@Valid`: lote y cultivo no vacíos, `eficienciaRiego` entre 1 y 100, nutrientes ≥ 0.
 - **Sin duplicados:** `usuarioId + idLocal` es único. Si la app reenvía un registro, se devuelve el que ya existe (200). Reintentar la sincronización es seguro.
 - El cultivo se valida contra `ms-catalogo`. Si `ms-catalogo` no responde, el registro se acepta igual para no bloquear la sincronización (queda en el log).
+- **Actualizar (PUT):** cambia cultivo, lote, meta, eficiencia y nutrientes. `id`, `idLocal`, `usuarioId` y `creadoEn` no se modifican aunque vengan distintos en el cuerpo.
 - La foto no se envía: queda solo en el teléfono.
 
 ## Despliegue en AWS Academy (EC2)

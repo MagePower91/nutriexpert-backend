@@ -9,6 +9,7 @@ import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -42,6 +43,12 @@ public class RegistroController {
     @GetMapping("/{id}")
     public Registro buscar(@PathVariable Long id) {
         return service.buscarPorId(id);
+    }
+
+    // 200 con el registro actualizado · 400 datos inválidos · 404 si no existe.
+    @PutMapping("/{id}")
+    public Registro actualizar(@PathVariable Long id, @Valid @RequestBody Registro registro) {
+        return service.actualizar(id, registro);
     }
 
     @DeleteMapping("/{id}")
